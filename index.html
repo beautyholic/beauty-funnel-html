@@ -1,12 +1,321 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Beauty Funnel MVP</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beautyholic – Terminassistenz</title>
+  <meta name="color-scheme" content="light only" />
+  <style>
+    /* ========= Scoped Styles (publish-sicher) ========= */
+    :root { --bg:#faf9fb; --ink:#111; --muted:#62656d; --brand:#111827; --accent:#e879f9; --card:#fff; --line:#ececf1; --ok:#16a34a; --danger:#ef4444; }
+    * { box-sizing:border-box }
+    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial; }
+    .wrap { max-width:860px; margin:0 auto; padding:24px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06) }
+
+    /* Header */
+    .header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--line) }
+    .brand { display:flex; gap:12px; align-items:center }
+    .logo { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#fce7f3,#fae8ff); display:flex; align-items:center; justify-content:center; font-weight:800; color:#9d174d }
+    .title { font-weight:700 }
+    .sub { color:var(--muted); font-size:13px }
+
+    /* Layout */
+    .grid { display:grid; gap:18px; grid-template-columns:1.2fr 2fr }
+    @media (max-width:900px){ .grid{ grid-template-columns:1fr } }
+
+    /* Left info */
+    .info { padding:16px 18px }
+    .info h2 { margin:0 0 6px; font-size:18px }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#f6f7fb; border:1px solid var(--line); font-size:13px; color:#374151; margin-right:6px; margin-bottom:6px }
+
+    /* Form */
+    .form { padding:18px }
+    .field { margin:10px 0 14px }
+    label { display:block; font-size:13px; color:#334155; margin:0 0 6px }
+    input, select { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:#fff; font-size:15px; outline:none; transition:border-color .2s, box-shadow .2s }
+    input:focus, select:focus { border-color:var(--brand); box-shadow:0 0 0 4px rgba(17,24,39,.1) }
+    .btn { cursor:pointer; border:0; border-radius:12px; padding:12px 16px; font-weight:700; background:var(--brand); color:#fff; transition:filter .2s }
+    .btn:hover{ filter:brightness(1.05) }
+
+    /* Loader Overlay */
+    .overlay { position:fixed; inset:0; background:#fff; display:flex; align-items:center; justify-content:center; text-align:center; padding:22px; z-index:9999; opacity:0; pointer-events:none; transition:opacity .25s ease }
+    .overlay.is-active{ opacity:1; pointer-events:auto }
+    .spinner{ width:60px; height:60px; border:6px solid #f3f3f3; border-top:6px solid var(--brand); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 14px }
+    @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+    /* Chat */
+    .chat { padding:0; display:flex; flex-direction:column; height:560px }
+    .chatHeader { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px }
+    .avatar { width:36px; height:36px; border-radius:50%; background:radial-gradient( circle at 30% 20%, #fde68a, #f0abfc ); border:1px solid #f4f4f8 }
+    .chatName { font-weight:700; font-size:15px }
+    .chatRole { font-size:12px; color:var(--muted) }
+
+    .chatBody { flex:1; padding:16px; overflow:auto; background:linear-gradient(180deg,#f9f9fb, #fff) }
+    .row { display:flex; margin-bottom:10px; gap:10px }
+    .me   { justify-content:flex-end }
+    .bot  { justify-content:flex-start }
+    .bubble { max-width:74%; padding:10px 12px; border-radius:14px; font-size:15px; line-height:1.4; border:1px solid var(--line) }
+    .bubble.bot { background:#fff }
+    .bubble.me  { background:#111827; color:#fff; border-color:#111827 }
+
+    .choices { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px }
+    .chip { border:1px solid var(--line); background:#fff; padding:8px 12px; border-radius:999px; font-size:14px; cursor:pointer }
+    .chip:hover{ border-color:#c7cad3; background:#fafafa }
+
+    .slots { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px }
+    .slot { border:1px dashed #d1d5db; background:#fff; padding:9px 12px; border-radius:12px; font-size:14px; cursor:pointer }
+    .slot:hover{ background:#f9fafb; border-style:solid }
+
+    .chatInput { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
+    .chatInput input { flex:1; border-radius:12px; border:1px solid var(--line); padding:12px 14px; font-size:15px; }
+    .send { background:var(--brand); color:#fff; border:0; padding:12px 16px; border-radius:12px; font-weight:700; cursor:pointer }
+
+    .muted { color:var(--muted) }
+    .footnote { margin-top:8px; font-size:12px; color:#6b7280 }
+    .ok { color:var(--ok) }
+    .error { color:var(--danger) }
+  </style>
 </head>
 <body>
-  <h1>Hallo 👋</h1>
-  <p>Das ist mein Beauty Funnel MVP – läuft!</p>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <div class="brand">
+          <div class="logo">BH</div>
+          <div>
+            <div class="title">Beautyholic</div>
+            <div class="sub">Terminassistenz – schnell & persönlich</div>
+          </div>
+        </div>
+        <div class="sub">⭐ 4,9&nbsp;·&nbsp;1.247 Bewertungen</div>
+      </div>
+
+      <div class="grid">
+        <!-- LEFT: Info + Formular -->
+        <div class="card info" id="left">
+          <h2>Deine Behandlung</h2>
+          <div class="pill">Erstberatung inkl.</div>
+          <div class="pill">Dauer: 45–60 Min</div>
+          <div class="pill">Preis: ab 79 €</div>
+
+          <div class="form" id="leadSection">
+            <h2 style="margin-top:14px">Schnellstart</h2>
+            <p class="sub" style="margin:4px 0 12px">Einmal Daten eintragen → dann übernimmt unsere Assistenz <b>Banu</b> für dich.</p>
+
+            <form id="leadForm">
+              <div class="field">
+                <label>Vorname *</label>
+                <input type="text" name="first_name" required />
+              </div>
+              <div class="field">
+                <label>Nachname *</label>
+                <input type="text" name="last_name" required />
+              </div>
+              <div class="field">
+                <label>Telefon *</label>
+                <input type="tel" name="phone" inputmode="tel" required />
+              </div>
+              <div class="field">
+                <label>Behandlung (optional)</label>
+                <input type="text" name="treatment" placeholder="z. B. Korean Skin Glow" />
+              </div>
+              <button class="btn" type="submit">Weiter zu Banu</button>
+              <div class="footnote">Mit Klick stimmst du der Verarbeitung deiner Daten zur Terminvergabe zu.</div>
+            </form>
+          </div>
+        </div>
+
+        <!-- RIGHT: Chat -->
+        <div class="card chat" id="chatCard" style="display:none">
+          <div class="chatHeader">
+            <div class="avatar"></div>
+            <div>
+              <div class="chatName">Banu</div>
+              <div class="chatRole muted">Termin-Assistenz</div>
+            </div>
+          </div>
+          <div id="chatBody" class="chatBody"></div>
+          <div class="chatInput">
+            <input id="chatInput" type="text" placeholder="Nachricht eingeben…" />
+            <button id="chatSend" class="send">Senden</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loader Overlay -->
+  <div id="overlay" class="overlay" aria-live="polite" aria-busy="true">
+    <div>
+      <div class="spinner"></div>
+      <div style="font-weight:700; margin-bottom:4px">Einen Moment …</div>
+      <div class="muted">Ich leite dich gleich an unsere Terminassistenz weiter.</div>
+    </div>
+  </div>
+
+  <script>
+    /* ============ CONFIG – bitte anpassen ============ */
+    const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-submit";
+    const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-message";
+
+    /* ============ Helpers ============ */
+    const $ = sel => document.querySelector(sel);
+    const chatBody = $("#chatBody");
+    const overlay  = $("#overlay");
+
+    // Session-ID (stabil über Tab)
+    let SESSION_ID = (crypto?.randomUUID?.() || (Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)));
+    let LEAD_ID = null;
+
+    // UTM sammeln
+    const urlParams = new URLSearchParams(location.search);
+    const UTM = Object.fromEntries(["utm_source","utm_medium","utm_campaign","utm_term","utm_content"]
+      .map(k => [k, urlParams.get(k) || ""]));
+
+    function typing(on=true){
+      if(on){
+        const row = document.createElement("div"); row.className="row bot"; row.id="typing";
+        const b = document.createElement("div"); b.className="bubble bot muted"; b.textContent="Banu tippt …";
+        row.appendChild(b); chatBody.appendChild(row); chatBody.scrollTop = chatBody.scrollHeight;
+      } else {
+        const t = $("#typing"); if(t) t.remove();
+      }
+    }
+
+    function bubble(from, html){
+      const row = document.createElement("div"); row.className = "row " + (from==="me"?"me":"bot");
+      const b = document.createElement("div"); b.className="bubble " + (from==="me"?"me":"bot");
+      b.innerHTML = html;
+      row.appendChild(b);
+      chatBody.appendChild(row);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function renderOptions(opts){
+      const row = document.createElement("div"); row.className="row bot";
+      const box = document.createElement("div"); box.className="bubble bot";
+      const div = document.createElement("div"); div.className="choices";
+      opts.forEach(o=>{
+        const btn = document.createElement("button");
+        btn.className="chip"; btn.textContent=o.label;
+        btn.onclick=()=> sendChat(o.id, o.label);
+        div.appendChild(btn);
+      });
+      box.innerHTML = "<b>Wähle aus:</b>";
+      box.appendChild(div);
+      row.appendChild(box); chatBody.appendChild(row);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function renderSlots(slots){
+      const row = document.createElement("div"); row.className="row bot";
+      const box = document.createElement("div"); box.className="bubble bot";
+      const div = document.createElement("div"); div.className="slots";
+      slots.forEach(s=>{
+        const btn = document.createElement("button");
+        btn.className="slot"; btn.textContent=s.label;
+        btn.onclick=()=> sendChat(s.id, s.label);
+        div.appendChild(btn);
+      });
+      box.innerHTML = "<b>Hier sind freie Zeiten:</b>";
+      box.appendChild(div);
+      row.appendChild(box); chatBody.appendChild(row);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function postPlain(url, payload){
+      // text/plain → robust für n8n Webhooks ohne CORS-Preflight
+      const res = await fetch(url, {
+        method:"POST",
+        headers:{ "Content-Type":"text/plain" },
+        body: JSON.stringify(payload)
+      });
+      // Bei “Respond to Webhook” liefern wir JSON zurück
+      try { return await res.json(); } catch { return {}; }
+    }
+
+    /* ============ Lead-Flow ============ */
+    $("#leadForm").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+
+      overlay.classList.add("is-active");
+      overlay.querySelector(".muted").textContent = "Ich prüfe kurz deine Angaben …";
+
+      try {
+        const leadResp = await postPlain(N8N_LEAD_URL, {
+          session_id: SESSION_ID,
+          form_data: data,
+          consent: true,
+          ...UTM
+        });
+        LEAD_ID = leadResp.lead_id || null;
+
+        // UI umschalten
+        $("#leadSection").style.display = "none";
+        $("#chatCard").style.display = "flex";
+
+        // Erste Chat-Nachricht anstoßen (leer = Begrüßung aus n8n)
+        overlay.querySelector(".muted").textContent = "Starte Konversation …";
+        await sendChat("");
+
+      } catch(err){
+        alert("Ups – etwas ist schief gelaufen. Bitte später erneut probieren.");
+      } finally {
+        overlay.classList.remove("is-active");
+      }
+    });
+
+    /* ============ Chat-Flow ============ */
+    $("#chatSend").addEventListener("click", ()=>{
+      const inp = $("#chatInput");
+      const msg = inp.value.trim();
+      if(!msg) return;
+      bubble("me", escapeHtml(msg));
+      inp.value = "";
+      sendChat(msg);
+    });
+    $("#chatInput").addEventListener("keydown", (ev)=>{
+      if(ev.key==="Enter"){ ev.preventDefault(); $("#chatSend").click(); }
+    });
+
+    function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+    async function sendChat(message, labelShown){
+      typing(true);
+      const payload = { session_id: SESSION_ID, lead_id: LEAD_ID, message };
+      try {
+        const resp = await postPlain(N8N_CHAT_URL, payload);
+
+        typing(false);
+        // Render Messages
+        const msgs = Array.isArray(resp?.messages) ? resp.messages : [];
+        msgs.forEach(m=>{
+          if(m.type==="text"){
+            bubble("bot", escapeHtml(m.text));
+          } else if(m.type==="options"){
+            renderOptions(m.options || []);
+          } else if(m.type==="slots"){
+            renderSlots(m.slots || []);
+          }
+        });
+
+        // Optional: Debug anzeigen
+        if(resp?.debug){
+          bubble("bot", `<span class="muted">debug:</span> ${escapeHtml(String(resp.debug))}`);
+        }
+
+      } catch(err){
+        typing(false);
+        bubble("bot", `<span class="error">Es gab ein Verbindungsproblem. Bitte kurz neu laden oder später erneut versuchen.</span>`);
+      }
+    }
+
+    // Begrüßungstext falls jemand ohne Formular direkt hier landet (optional)
+    (function warmWelcome(){
+      // nichts senden – Chat startet erst nach Formular
+    })();
+  </script>
 </body>
 </html>
