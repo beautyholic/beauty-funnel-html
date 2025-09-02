@@ -1,321 +1,433 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Beautyholic – Terminassistenz</title>
-  <meta name="color-scheme" content="light only" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Terminassistenz – Beautyholic</title>
+  <meta name="description" content="Schnell einen Termin sichern – freundlich, persönlich, ohne Wartezeit." />
   <style>
-    /* ========= Scoped Styles (publish-sicher) ========= */
-    :root { --bg:#faf9fb; --ink:#111; --muted:#62656d; --brand:#111827; --accent:#e879f9; --card:#fff; --line:#ececf1; --ok:#16a34a; --danger:#ef4444; }
-    * { box-sizing:border-box }
-    body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial; }
-    .wrap { max-width:860px; margin:0 auto; padding:24px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.06) }
+    :root{
+      --bg:#fff;
+      --ink:#0f172a;             /* slate-900 */
+      --muted:#64748b;           /* slate-500 */
+      --line:#e2e8f0;            /* slate-200 */
+      --card:#ffffff;
+      --soft:#f8fafc;            /* slate-50 */
+      --brand:#111827;           /* gray-900 */
+      --pill:#fdf2f8;            /* rose-50 */
+      --pill-border:#ffe4e6;     /* rose-100 */
+      --pill-text:#e11d48;       /* rose-600 */
+      --accent:#ec4899;          /* pink-500 */
+      --accent-2:#a21caf;        /* fuchsia-700 */
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink); background:
+        radial-gradient(60% 50% at 50% -10%, #ffe9f7 0%, #ffffff 55%, #ffffff 100%);
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    a{color:inherit}
+    .container{max-width:680px;margin:0 auto;padding:24px 16px 120px}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); padding:18px}
+    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .trust-chip{display:inline-flex;align-items:center;gap:6px; font-weight:600; font-size:12px; color:#475569; border:1px solid var(--line); padding:6px 8px; border-radius:999px}
+    .dot{width:6px;height:6px;border-radius:999px}
+    .headline{font-size:28px;line-height:1.15;font-weight:800;margin:6px 0 0}
+    .sub{color:#475569;margin-top:8px}
+    .pills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px}
+    .pill{display:inline-flex;justify-content:center;align-items:center;background:var(--pill);border:1px solid var(--pill-border);color:var(--pill-text);padding:10px;border-radius:18px;font-weight:600}
+    .offer{margin-top:14px;border-radius:18px;background:var(--pill);border:1px solid var(--pill-border);padding:14px}
+    .offer h3{margin:6px 0 0;font-size:22px;font-weight:800}
+    .offer .hint{color:#475569}
+    .badge{display:inline-block;background:#fff;border:1px solid var(--pill-border);color:var(--pill-text);border-radius:999px;padding:6px 10px;font-weight:600;font-size:13px}
+    .before-after{position:relative;border:1px solid #e5e7eb;border-radius:18px;overflow:hidden; aspect-ratio:16/10;margin-top:14px}
+    .before-after img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .ba-slider{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:85%}
+    .ba-divider{position:absolute;inset:0 auto 0 50%;width:2px;background:rgba(255,255,255,.7);backdrop-filter:blur(2px);transform:translateX(-50%)}
 
-    /* Header */
-    .header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--line) }
-    .brand { display:flex; gap:12px; align-items:center }
-    .logo { width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg,#fce7f3,#fae8ff); display:flex; align-items:center; justify-content:center; font-weight:800; color:#9d174d }
-    .title { font-weight:700 }
-    .sub { color:var(--muted); font-size:13px }
+    /* Bottom Action Bar */
+    .bar{position:fixed;inset-inline:0;bottom:0;border-top:1px solid var(--line);background:rgba(255,255,255,.9);backdrop-filter:blur(8px);z-index:50}
+    .bar-inner{max-width:680px;margin:0 auto;padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px}
+    .btn{height:48px;border-radius:12px;font-weight:700;border:1px solid var(--line);background:#fff}
+    .btn-primary{background:linear-gradient(90deg,var(--accent), #c026d3); color:#fff;border:none; box-shadow:0 8px 18px rgba(236,72,153,.25)}
+    .btn:active{transform:scale(.99)}
 
-    /* Layout */
-    .grid { display:grid; gap:18px; grid-template-columns:1.2fr 2fr }
-    @media (max-width:900px){ .grid{ grid-template-columns:1fr } }
-
-    /* Left info */
-    .info { padding:16px 18px }
-    .info h2 { margin:0 0 6px; font-size:18px }
-    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#f6f7fb; border:1px solid var(--line); font-size:13px; color:#374151; margin-right:6px; margin-bottom:6px }
+    /* Sheet + Modal */
+    dialog{border:none;border-radius:20px;padding:0;width:min(92%,560px)}
+    dialog::backdrop{background:rgba(0,0,0,.3)}
+    .sheet{margin:0;padding:0;position:fixed;inset-inline:0;bottom:0;border-radius:20px 20px 0 0;width:100%;max-width:680px;margin-inline:auto}
+    .sheet .grip{width:40px;height:5px;background:#e2e8f0;border-radius:999px;margin:8px auto}
+    .sheet .body{padding:10px 16px 16px}
 
     /* Form */
-    .form { padding:18px }
-    .field { margin:10px 0 14px }
-    label { display:block; font-size:13px; color:#334155; margin:0 0 6px }
-    input, select { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:#fff; font-size:15px; outline:none; transition:border-color .2s, box-shadow .2s }
-    input:focus, select:focus { border-color:var(--brand); box-shadow:0 0 0 4px rgba(17,24,39,.1) }
-    .btn { cursor:pointer; border:0; border-radius:12px; padding:12px 16px; font-weight:700; background:var(--brand); color:#fff; transition:filter .2s }
-    .btn:hover{ filter:brightness(1.05) }
+    .field{display:flex;flex-direction:column;gap:6px}
+    .inp{height:48px;border:1px solid var(--line);border-radius:12px;padding:0 14px;font:inherit}
+    .inp:focus{outline:none;border-color:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.18)}
+    .note{font-size:12px;color:#475569}
 
-    /* Loader Overlay */
-    .overlay { position:fixed; inset:0; background:#fff; display:flex; align-items:center; justify-content:center; text-align:center; padding:22px; z-index:9999; opacity:0; pointer-events:none; transition:opacity .25s ease }
-    .overlay.is-active{ opacity:1; pointer-events:auto }
-    .spinner{ width:60px; height:60px; border:6px solid #f3f3f3; border-top:6px solid var(--brand); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 14px }
-    @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    /* Loader overlay */
+    .overlay{position:fixed;inset:0;background:rgba(255,255,255,.96);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:60}
+    .overlay.active{display:flex}
+    .spinner{width:56px;height:56px;border:5px solid #e5e7eb;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
     /* Chat */
-    .chat { padding:0; display:flex; flex-direction:column; height:560px }
-    .chatHeader { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px }
-    .avatar { width:36px; height:36px; border-radius:50%; background:radial-gradient( circle at 30% 20%, #fde68a, #f0abfc ); border:1px solid #f4f4f8 }
-    .chatName { font-weight:700; font-size:15px }
-    .chatRole { font-size:12px; color:var(--muted) }
+    .hidden{display:none !important}
+    .app{max-width:680px;margin:0 auto;padding:12px 12px calc(92px + env(safe-area-inset-bottom))}
+    .chat-card{background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:10px}
+    .row-gap{display:flex;flex-direction:column;gap:8px}
+    .bubble{max-width:90%;padding:10px 12px;border-radius:16px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+    .bot{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+    .user{align-self:flex-end;background:#111827;color:#fff}
+    .pulse{animation:pulse-bg 1.2s ease 1}
+    @keyframes pulse-bg{
+      0%{box-shadow:0 0 0 0 rgba(236,72,153,.35)}
+      100%{box-shadow:0 0 0 16px rgba(236,72,153,0)}
+    }
+    .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px dashed #cbd5e1;border-radius:999px;background:#fff}
+    .chip[disabled]{opacity:.45;pointer-events:none}
+    .slot{border-style:dashed}
+    .chip.selected{border-style:solid;border-color:#111827}
+    .recap{position:sticky;top:0;z-index:10;display:flex;gap:6px;flex-wrap:wrap;padding:8px 0 6px;background:linear-gradient(#fff, rgba(255,255,255,.8))}
+    .recap-pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#475569}
+    .typing{display:flex;align-items:center;gap:6px}
+    .dot-typing{width:7px;height:7px;border-radius:999px;background:#cbd5e1;animation:jump 1s infinite}
+    .dot-typing:nth-child(2){animation-delay:.15s}
+    .dot-typing:nth-child(3){animation-delay:.3s}
+    @keyframes jump{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
 
-    .chatBody { flex:1; padding:16px; overflow:auto; background:linear-gradient(180deg,#f9f9fb, #fff) }
-    .row { display:flex; margin-bottom:10px; gap:10px }
-    .me   { justify-content:flex-end }
-    .bot  { justify-content:flex-start }
-    .bubble { max-width:74%; padding:10px 12px; border-radius:14px; font-size:15px; line-height:1.4; border:1px solid var(--line) }
-    .bubble.bot { background:#fff }
-    .bubble.me  { background:#111827; color:#fff; border-color:#111827 }
-
-    .choices { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px }
-    .chip { border:1px solid var(--line); background:#fff; padding:8px 12px; border-radius:999px; font-size:14px; cursor:pointer }
-    .chip:hover{ border-color:#c7cad3; background:#fafafa }
-
-    .slots { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px }
-    .slot { border:1px dashed #d1d5db; background:#fff; padding:9px 12px; border-radius:12px; font-size:14px; cursor:pointer }
-    .slot:hover{ background:#f9fafb; border-style:solid }
-
-    .chatInput { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); }
-    .chatInput input { flex:1; border-radius:12px; border:1px solid var(--line); padding:12px 14px; font-size:15px; }
-    .send { background:var(--brand); color:#fff; border:0; padding:12px 16px; border-radius:12px; font-weight:700; cursor:pointer }
-
-    .muted { color:var(--muted) }
-    .footnote { margin-top:8px; font-size:12px; color:#6b7280 }
-    .ok { color:var(--ok) }
-    .error { color:var(--danger) }
+    /* Composer */
+    .composer{position:fixed;inset-inline:0;bottom:0;border-top:1px solid var(--line);background:#fff;z-index:40}
+    .composer-inner{max-width:680px;margin:0 auto;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
+    .text{flex:1;height:48px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font:inherit}
+    .send{width:104px;height:48px;border-radius:12px;background:#111827;color:#fff;font-weight:700}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="header">
-        <div class="brand">
-          <div class="logo">BH</div>
-          <div>
-            <div class="title">Beautyholic</div>
-            <div class="sub">Terminassistenz – schnell & persönlich</div>
-          </div>
-        </div>
-        <div class="sub">⭐ 4,9&nbsp;·&nbsp;1.247 Bewertungen</div>
+
+  <!-- ====== INTRO / INFO PAGE ====== -->
+  <main id="intro" class="container">
+    <section class="card">
+      <div class="row" style="margin-bottom:10px">
+        <span class="trust-chip"><span class="dot" style="background:#10b981"></span>Zertifiziert</span>
+        <span class="trust-chip"><span class="dot" style="background:#ec4899"></span>Hygiene geprüft</span>
+        <span class="trust-chip"><span class="dot" style="background:#8b5cf6"></span>Expertinnen-Team</span>
       </div>
 
-      <div class="grid">
-        <!-- LEFT: Info + Formular -->
-        <div class="card info" id="left">
-          <h2>Deine Behandlung</h2>
-          <div class="pill">Erstberatung inkl.</div>
-          <div class="pill">Dauer: 45–60 Min</div>
-          <div class="pill">Preis: ab 79 €</div>
+      <h1 class="headline">Porentief reine Haut. Ohne Downtime.</h1>
+      <p class="sub">Buche dein <b>Microneedling</b> bei <b>Beautyholic</b> – schnell, freundlich und ohne Wartezeit. Ideal bei vergrößerten Poren, feinen Aknenarben und Pigmentflecken.</p>
 
-          <div class="form" id="leadSection">
-            <h2 style="margin-top:14px">Schnellstart</h2>
-            <p class="sub" style="margin:4px 0 12px">Einmal Daten eintragen → dann übernimmt unsere Assistenz <b>Banu</b> für dich.</p>
+      <div class="pills">
+        <span class="pill">Erstberatung inkl.</span>
+        <span class="pill">Dauer: 45–60 Min</span>
+        <span class="pill">Preis: ab 79 €</span>
+        <span class="pill">In deiner Nähe</span>
+      </div>
 
-            <form id="leadForm">
-              <div class="field">
-                <label>Vorname *</label>
-                <input type="text" name="first_name" required />
-              </div>
-              <div class="field">
-                <label>Nachname *</label>
-                <input type="text" name="last_name" required />
-              </div>
-              <div class="field">
-                <label>Telefon *</label>
-                <input type="tel" name="phone" inputmode="tel" required />
-              </div>
-              <div class="field">
-                <label>Behandlung (optional)</label>
-                <input type="text" name="treatment" placeholder="z. B. Korean Skin Glow" />
-              </div>
-              <button class="btn" type="submit">Weiter zu Banu</button>
-              <div class="footnote">Mit Klick stimmst du der Verarbeitung deiner Daten zur Terminvergabe zu.</div>
-            </form>
-          </div>
-        </div>
-
-        <!-- RIGHT: Chat -->
-        <div class="card chat" id="chatCard" style="display:none">
-          <div class="chatHeader">
-            <div class="avatar"></div>
-            <div>
-              <div class="chatName">Banu</div>
-              <div class="chatRole muted">Termin-Assistenz</div>
-            </div>
-          </div>
-          <div id="chatBody" class="chatBody"></div>
-          <div class="chatInput">
-            <input id="chatInput" type="text" placeholder="Nachricht eingeben…" />
-            <button id="chatSend" class="send">Senden</button>
-          </div>
+      <div class="offer">
+        <p class="note" style="text-transform:uppercase;font-weight:700;letter-spacing:.02em;color:#64748b">Neukunden-Angebot</p>
+        <h3>Microneedling für nur 99 €</h3>
+        <p class="hint">75 Min · Beratung im Wert von 35 € inklusive</p>
+        <div class="row" style="margin-top:8px">
+          <span class="badge">Keine Ausfallzeit</span>
+          <span class="badge">Nur 10 Plätze</span>
         </div>
       </div>
+
+      <div class="before-after">
+        <img alt="Vorher" src="https://images.unsplash.com/photo-1631718864926-8a6c9a6090f2?q=80&w=1200&auto=format&fit=crop"/>
+        <div id="afterLayer" style="position:absolute;inset:0;overflow:hidden;clip-path:inset(0 50% 0 0)">
+          <img alt="Nachher" src="https://images.unsplash.com/photo-1607779097040-26d5f0a4bd2b?q=80&w=1200&auto=format&fit=crop"/>
+        </div>
+        <input id="ba" class="ba-slider" type="range" min="0" max="100" value="50" />
+        <div class="ba-divider"></div>
+      </div>
+      <p class="note" style="text-align:center;margin-top:6px">Vorher · Nachher</p>
+    </section>
+  </main>
+
+  <!-- Bottom action bar -->
+  <div class="bar" id="introBar">
+    <div class="bar-inner">
+      <button class="btn" id="btnMore">Mehr Infos</button>
+      <button class="btn btn-primary" id="btnBook">Termin buchen</button>
     </div>
   </div>
 
-  <!-- Loader Overlay -->
-  <div id="overlay" class="overlay" aria-live="polite" aria-busy="true">
-    <div>
-      <div class="spinner"></div>
-      <div style="font-weight:700; margin-bottom:4px">Einen Moment …</div>
-      <div class="muted">Ich leite dich gleich an unsere Terminassistenz weiter.</div>
+  <!-- Modal: Mehr Infos -->
+  <dialog id="dlgMore">
+    <div class="card" style="border-radius:20px;margin:0">
+      <div style="width:40px;height:5px;background:#e2e8f0;border-radius:999px;margin:4px auto 10px"></div>
+      <h2 style="font-size:20px;font-weight:800;margin:0 0 6px">Microneedling – auf einen Blick</h2>
+      <ul style="margin:6px 0 10px;padding-left:20px;color:#475569">
+        <li>Verfeinert Poren und glättet die Hautstruktur</li>
+        <li>Mildert Aknenarben & Pigmentunregelmäßigkeiten</li>
+        <li>Regt die Kollagenbildung an</li>
+        <li>Kaum Ausfallzeit – du kannst direkt wieder los</li>
+        <li>Inklusive Hautanalyse & Pflegeplan</li>
+      </ul>
+      <div class="row">
+        <button class="btn" id="closeMore" style="flex:1">Schließen</button>
+        <button class="btn btn-primary" id="moreToBook" style="flex:1">Termin wählen</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Sheet: Lead Formular -->
+  <dialog id="sheetForm" class="sheet">
+    <div class="grip"></div>
+    <div class="body">
+      <h3 style="margin:4px 0 10px;font-size:18px;font-weight:800">Deine Kontaktdaten</h3>
+      <form id="leadForm" class="row-gap">
+        <div class="field">
+          <label for="first_name">Vorname</label>
+          <input id="first_name" name="first_name" class="inp" required />
+        </div>
+        <div class="field">
+          <label for="last_name">Nachname</label>
+          <input id="last_name" name="last_name" class="inp" required />
+        </div>
+        <div class="field">
+          <label for="phone">Telefon</label>
+          <input id="phone" name="phone" class="inp" inputmode="tel" required />
+        </div>
+        <p class="note">Wir verwenden deine Daten ausschließlich zur Terminvergabe.</p>
+        <div class="row">
+          <button type="button" class="btn" id="cancelForm" style="flex:1">Abbrechen</button>
+          <button class="btn btn-primary" style="flex:1">Weiter</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Loader -->
+  <div class="overlay" id="overlay">
+    <div class="spinner"></div>
+    <div style="color:#475569">Ich leite dich zu unserer Termin-Assistenz weiter …</div>
+  </div>
+
+  <!-- ====== CHAT VIEW ====== -->
+  <div id="chatView" class="hidden">
+    <div class="app">
+      <!-- Header + recap -->
+      <div class="row" style="justify-content:space-between;margin:6px 6px 10px">
+        <div class="row">
+          <div style="width:38px;height:38px;border-radius:999px;background:linear-gradient(135deg,#fca5a5,#ec4899)"></div>
+          <div>
+            <div style="font-weight:800">Banu</div>
+            <div class="note">Termin-Assistenz</div>
+          </div>
+        </div>
+        <div class="note">⭐⭐⭐⭐⭐ 4,9</div>
+      </div>
+
+      <div id="recap" class="recap"></div>
+
+      <div id="chat" class="chat-card row-gap"></div>
+    </div>
+
+    <div class="composer">
+      <div class="composer-inner">
+        <input id="input" class="text" placeholder="Nachricht eingeben…" />
+        <button id="send" class="send">Senden</button>
+      </div>
     </div>
   </div>
 
   <script>
-    /* ============ CONFIG – bitte anpassen ============ */
+    // ---------- CONFIG ----------
     const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-submit";
     const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-message";
 
-    /* ============ Helpers ============ */
-    const $ = sel => document.querySelector(sel);
-    const chatBody = $("#chatBody");
-    const overlay  = $("#overlay");
+    // ---------- INTRO INTERACTIONS ----------
+    const afterLayer = document.getElementById('afterLayer');
+    document.getElementById('ba').addEventListener('input', (e)=>{
+      const v = Number(e.target.value);
+      afterLayer.style.clipPath = `inset(0 ${100-v}% 0 0)`;
+    });
 
-    // Session-ID (stabil über Tab)
-    let SESSION_ID = (crypto?.randomUUID?.() || (Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)));
+    const dlgMore = document.getElementById('dlgMore');
+    document.getElementById('btnMore').onclick = ()=> dlgMore.showModal();
+    document.getElementById('closeMore').onclick = ()=> dlgMore.close();
+    document.getElementById('moreToBook').onclick = ()=> { dlgMore.close(); openForm(); }
+    document.getElementById('btnBook').onclick = openForm;
+
+    function openForm(){
+      document.getElementById('sheetForm').showModal();
+      document.getElementById('first_name').focus();
+    }
+
+    // ---------- STATE ----------
+    let SESSION_ID = (crypto?.randomUUID?.() || (Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)));
     let LEAD_ID = null;
+    const recap = { pref: null };
 
-    // UTM sammeln
-    const urlParams = new URLSearchParams(location.search);
-    const UTM = Object.fromEntries(["utm_source","utm_medium","utm_campaign","utm_term","utm_content"]
-      .map(k => [k, urlParams.get(k) || ""]));
-
-    function typing(on=true){
-      if(on){
-        const row = document.createElement("div"); row.className="row bot"; row.id="typing";
-        const b = document.createElement("div"); b.className="bubble bot muted"; b.textContent="Banu tippt …";
-        row.appendChild(b); chatBody.appendChild(row); chatBody.scrollTop = chatBody.scrollHeight;
-      } else {
-        const t = $("#typing"); if(t) t.remove();
-      }
+    // ---------- HELPERS ----------
+    const $ = sel => document.querySelector(sel);
+    function addRecap(){
+      const el = document.getElementById('recap');
+      el.innerHTML = '';
+      if (recap.pref) el.append(childPill(`Präferenz: ${recap.pref}`));
     }
-
-    function bubble(from, html){
-      const row = document.createElement("div"); row.className = "row " + (from==="me"?"me":"bot");
-      const b = document.createElement("div"); b.className="bubble " + (from==="me"?"me":"bot");
-      b.innerHTML = html;
-      row.appendChild(b);
-      chatBody.appendChild(row);
-      chatBody.scrollTop = chatBody.scrollHeight;
+    function childPill(text){
+      const s=document.createElement('span'); s.className='recap-pill'; s.textContent=text; return s;
     }
-
-    function renderOptions(opts){
-      const row = document.createElement("div"); row.className="row bot";
-      const box = document.createElement("div"); box.className="bubble bot";
-      const div = document.createElement("div"); div.className="choices";
-      opts.forEach(o=>{
-        const btn = document.createElement("button");
-        btn.className="chip"; btn.textContent=o.label;
-        btn.onclick=()=> sendChat(o.id, o.label);
-        div.appendChild(btn);
+    function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+    function typing(ms=900){
+      const wrap = document.createElement('div'); wrap.className='bubble bot';
+      const inner = document.createElement('div'); inner.className='typing';
+      inner.innerHTML = '<div class="dot-typing"></div><div class="dot-typing"></div><div class="dot-typing"></div>';
+      wrap.append(inner); chat.append(wrap); chat.scrollTop = chat.scrollHeight;
+      return { stop:()=>wrap.remove(), promise:sleep(ms) };
+    }
+    function bot(text, pulse=true){
+      const b = document.createElement('div');
+      b.className = 'bubble bot' + (pulse ? ' pulse':'');
+      b.textContent = text; chat.append(b); chat.scrollTop = chat.scrollHeight; return b;
+    }
+    function user(text){
+      const b = document.createElement('div');
+      b.className = 'bubble user';
+      b.textContent = text; chat.append(b); chat.scrollTop = chat.scrollHeight; return b;
+    }
+    function chips(options, onPick){
+      const row = document.createElement('div');
+      row.className = 'chip-row';
+      options.forEach(opt=>{
+        const btn = document.createElement('button');
+        btn.className='chip'; btn.textContent=opt.label; btn.onclick=()=>{
+          // Echo selection
+          user(opt.label);
+          // disable all
+          row.querySelectorAll('button').forEach(b=>b.disabled=true);
+          onPick(opt.id, opt.label, row);
+        };
+        row.append(btn);
       });
-      box.innerHTML = "<b>Wähle aus:</b>";
-      box.appendChild(div);
-      row.appendChild(box); chatBody.appendChild(row);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      chat.append(row); chat.scrollTop = chat.scrollHeight;
+      return row;
     }
-
-    function renderSlots(slots){
-      const row = document.createElement("div"); row.className="row bot";
-      const box = document.createElement("div"); box.className="bubble bot";
-      const div = document.createElement("div"); div.className="slots";
+    function slotChips(slots, onPick){
+      const row = document.createElement('div');
+      row.className = 'chip-row';
       slots.forEach(s=>{
-        const btn = document.createElement("button");
-        btn.className="slot"; btn.textContent=s.label;
-        btn.onclick=()=> sendChat(s.id, s.label);
-        div.appendChild(btn);
+        const btn = document.createElement('button');
+        btn.className='chip slot'; btn.textContent=s.label;
+        btn.onclick=()=>{
+          user(s.label);
+          row.querySelectorAll('button').forEach(b=>b.disabled=true);
+          btn.classList.add('selected');
+          onPick(s.id, s.label, row);
+        };
+        row.append(btn);
       });
-      box.innerHTML = "<b>Hier sind freie Zeiten:</b>";
-      box.appendChild(div);
-      row.appendChild(box); chatBody.appendChild(row);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      chat.append(row); chat.scrollTop = chat.scrollHeight;
+      return row;
     }
-
-    async function postPlain(url, payload){
-      // text/plain → robust für n8n Webhooks ohne CORS-Preflight
+    async function postPlain(url, obj){
       const res = await fetch(url, {
-        method:"POST",
-        headers:{ "Content-Type":"text/plain" },
-        body: JSON.stringify(payload)
+        method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(obj)
       });
-      // Bei “Respond to Webhook” liefern wir JSON zurück
-      try { return await res.json(); } catch { return {}; }
+      return res.json();
     }
 
-    /* ============ Lead-Flow ============ */
-    $("#leadForm").addEventListener("submit", async (e)=>{
+    // ---------- LEAD FORM ----------
+    $('#cancelForm').onclick = ()=> $('#sheetForm').close();
+
+    $('#leadForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const data = Object.fromEntries(new FormData(e.target).entries());
+      const fd = Object.fromEntries(new FormData(e.target).entries());
+      $('#sheetForm').close();
+      $('#overlay').classList.add('active');
 
-      overlay.classList.add("is-active");
-      overlay.querySelector(".muted").textContent = "Ich prüfe kurz deine Angaben …";
-
-      try {
+      try{
         const leadResp = await postPlain(N8N_LEAD_URL, {
-          session_id: SESSION_ID,
-          form_data: data,
-          consent: true,
-          ...UTM
+          session_id: SESSION_ID, form_data: fd, consent: true
         });
         LEAD_ID = leadResp.lead_id || null;
+      }catch(err){ /* fallback: continue anyway */ }
 
-        // UI umschalten
-        $("#leadSection").style.display = "none";
-        $("#chatCard").style.display = "flex";
+      // Hide intro, show chat
+      $('#overlay').classList.remove('active');
+      document.getElementById('intro').classList.add('hidden');
+      document.getElementById('introBar').classList.add('hidden');
+      document.getElementById('chatView').classList.remove('hidden');
 
-        // Erste Chat-Nachricht anstoßen (leer = Begrüßung aus n8n)
-        overlay.querySelector(".muted").textContent = "Starte Konversation …";
-        await sendChat("");
+      // Start chat: first message from backend (or local if empty)
+      await chatSend(""); // primes flow
+    });
 
-      } catch(err){
-        alert("Ups – etwas ist schief gelaufen. Bitte später erneut probieren.");
-      } finally {
-        overlay.classList.remove("is-active");
+    // ---------- CHAT ----------
+    const chat = document.getElementById('chat');
+    document.getElementById('send').onclick = async ()=>{
+      const t = document.getElementById('input');
+      const msg = t.value.trim(); if(!msg) return;
+      user(msg); t.value='';
+      await chatSend(msg);
+    };
+
+    async function chatSend(message){
+      addRecap();
+
+      // typing UX
+      const t = typing(calcTypeDelay(message));
+
+      let resp;
+      try{
+        resp = await postPlain(N8N_CHAT_URL, { session_id: SESSION_ID, lead_id: LEAD_ID, message });
+      }catch(e){
+        t.stop();
+        bot("Netzwerk kurz ausgelastet. Ich versuche es erneut …");
+        return;
       }
-    });
+      await t.promise; t.stop();
 
-    /* ============ Chat-Flow ============ */
-    $("#chatSend").addEventListener("click", ()=>{
-      const inp = $("#chatInput");
-      const msg = inp.value.trim();
-      if(!msg) return;
-      bubble("me", escapeHtml(msg));
-      inp.value = "";
-      sendChat(msg);
-    });
-    $("#chatInput").addEventListener("keydown", (ev)=>{
-      if(ev.key==="Enter"){ ev.preventDefault(); $("#chatSend").click(); }
-    });
-
-    function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-    async function sendChat(message, labelShown){
-      typing(true);
-      const payload = { session_id: SESSION_ID, lead_id: LEAD_ID, message };
-      try {
-        const resp = await postPlain(N8N_CHAT_URL, payload);
-
-        typing(false);
-        // Render Messages
-        const msgs = Array.isArray(resp?.messages) ? resp.messages : [];
-        msgs.forEach(m=>{
-          if(m.type==="text"){
-            bubble("bot", escapeHtml(m.text));
-          } else if(m.type==="options"){
-            renderOptions(m.options || []);
-          } else if(m.type==="slots"){
-            renderSlots(m.slots || []);
-          }
-        });
-
-        // Optional: Debug anzeigen
-        if(resp?.debug){
-          bubble("bot", `<span class="muted">debug:</span> ${escapeHtml(String(resp.debug))}`);
+      // Render messages
+      (resp.messages||[]).forEach(m=>{
+        if (m.type === 'text'){
+          bot(m.text);
+        } else if (m.type === 'options'){
+          chips(m.options, async (id,label,row)=>{
+            // update recap if it's a pref
+            if (id.startsWith('pref_')){
+              recap.pref = label;
+              addRecap();
+            }
+            // small delay → human feel
+            await sleep(500);
+            await chatSend(id);
+            row.remove();
+          });
+        } else if (m.type === 'slots'){
+          slotChips(m.slots, async (id,label,row)=>{
+            await sleep(400);
+            await chatSend(id);
+            row.remove();
+          });
         }
+      });
 
-      } catch(err){
-        typing(false);
-        bubble("bot", `<span class="error">Es gab ein Verbindungsproblem. Bitte kurz neu laden oder später erneut versuchen.</span>`);
+      // Optional debug bubble from backend
+      if (resp.debug){
+        const d = document.createElement('div'); d.className='bubble bot';
+        d.style.color='#475569'; d.style.borderStyle='dashed'; d.textContent = `debug: ${resp.debug}`;
+        chat.append(d);
       }
+      chat.scrollTop = chat.scrollHeight;
     }
 
-    // Begrüßungstext falls jemand ohne Formular direkt hier landet (optional)
-    (function warmWelcome(){
-      // nichts senden – Chat startet erst nach Formular
-    })();
+    function calcTypeDelay(msg=""){
+      const base = 700;
+      const extra = Math.min(800, (msg?.length||0)*18);
+      return base + extra;
+    }
   </script>
 </body>
 </html>
