@@ -2,154 +2,171 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Terminbuchung</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microneedling Buchung</title>
   <style>
-    body { font-family: sans-serif; background: #fafafa; }
-    .container { max-width: 480px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);}
-    h2 { margin-bottom: 8px; }
-    form input { display:block; width:100%; margin-bottom:12px; padding:12px; border:1px solid #ccc; border-radius:8px; }
-    form button { width:100%; padding:14px; background:#0b132b; color:#fff; border:none; border-radius:12px; font-weight:600; cursor:pointer;}
-    .chat { margin-top:20px; display:none; }
-    .msg { padding:12px 16px; border-radius:12px; margin-bottom:10px; max-width:80%; }
-    .bot { background:#f1f5f9; align-self:flex-start; }
-    .user { background:#0b132b; color:#fff; margin-left:auto; align-self:flex-end; }
-    .options button { margin:4px; padding:8px 12px; border:1px solid #0b132b; background:#fff; border-radius:8px; cursor:pointer; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      max-width: 420px;
+      width: 100%;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    input {
+      display: block;
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #0c1325;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .bubble {
+      background: #f1f5f9;
+      padding: 12px 18px;
+      border-radius: 14px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+
+<div class="card">
+  <div id="intro">
     <h2>Porentief reine Haut. Ohne Downtime.</h2>
     <p>Buche dein <b>Microneedling</b> in Duisburg – schnell, freundlich und ohne Wartezeit.</p>
-
-    <!-- Lead Formular -->
     <form id="leadForm">
-      <input type="text" name="first_name" placeholder="Vorname" required>
-      <input type="text" name="last_name" placeholder="Nachname" required>
-      <input type="tel" name="phone" placeholder="Telefon" required>
+      <input type="text" name="vorname" placeholder="Vorname" required />
+      <input type="text" name="nachname" placeholder="Nachname" required />
+      <input type="tel" name="telefon" placeholder="Telefon" required />
       <button type="submit">Weiter</button>
     </form>
-
-    <!-- Chat -->
-    <div class="chat" id="chatBox"></div>
   </div>
 
-  <script>
-  /* ===== n8n ENDPOINTS ===== */
-  const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-url"; 
-  const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-url";
+  <div id="chatCard" style="display:none;">
+    <div id="chatWindow"></div>
+    <form id="chatForm">
+      <input type="text" id="chatInput" placeholder="Nachricht eingeben…" />
+    </form>
+  </div>
+</div>
 
-  /* ===== Session ===== */
-  const SESSION_ID = (crypto?.randomUUID?.() || Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
-  let LEAD_ID = null;
+<script>
+/* ====== CONFIG (n8n URLs) ====== */
+const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook-test/lead-url";
+const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-url";
 
-  /* ===== HTTP Helper ===== */
-  async function postPlain(url, payload) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      throw new Error(`HTTP ${res.status} ${res.statusText} – ${txt}`);
-    }
-    const ct = res.headers.get("content-type") || "";
-    return ct.includes("application/json") ? res.json() : {};
-  }
-
-  /* ===== Lead absenden ===== */
-  async function sendLead(formEl) {
-    const data = Object.fromEntries(new FormData(formEl).entries());
-    const urlParams = new URLSearchParams(location.search);
-    const utm = Object.fromEntries(
-      ["utm_source","utm_medium","utm_campaign","utm_term","utm_content"]
-        .map(k => [k, urlParams.get(k) || ""])
-    );
-
-    const resp = await postPlain(N8N_LEAD_URL, {
-      session_id: SESSION_ID,
-      form_data: data,
-      consent: true,
-      ...utm,
-    });
-
-    LEAD_ID = resp?.lead_id || LEAD_ID;
-    return resp;
-  }
-
-  /* ===== Chat Nachricht ===== */
-  async function sendChat(message) {
-    const resp = await postPlain(N8N_CHAT_URL, {
-      session_id: SESSION_ID,
-      lead_id: LEAD_ID,
-      message,
-    });
-    renderResponse(resp);
-    return resp;
-  }
-
-  /* ===== UI Helpers ===== */
-  const chatBox = document.getElementById("chatBox");
-  function addMsg(text, sender="bot") {
-    const div = document.createElement("div");
-    div.className = "msg " + sender;
-    div.innerText = text;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-  function renderResponse(resp) {
-    if (!resp?.messages) return;
-    resp.messages.forEach(m => {
-      if (m.type === "text") {
-        addMsg(m.text, "bot");
-      } else if (m.type === "options") {
-        const optDiv = document.createElement("div");
-        optDiv.className = "options";
-        m.options.forEach(o => {
-          const btn = document.createElement("button");
-          btn.innerText = o.label;
-          btn.onclick = () => {
-            addMsg(o.label, "user");
-            sendChat(o.id);
-            optDiv.remove();
-          };
-          optDiv.appendChild(btn);
-        });
-        chatBox.appendChild(optDiv);
-      } else if (m.type === "slots") {
-        const optDiv = document.createElement("div");
-        optDiv.className = "options";
-        m.slots.forEach(s => {
-          const btn = document.createElement("button");
-          btn.innerText = s.label;
-          btn.onclick = () => {
-            addMsg(s.label, "user");
-            sendChat(s.id);
-            optDiv.remove();
-          };
-          optDiv.appendChild(btn);
-        });
-        chatBox.appendChild(optDiv);
-      }
-    });
-  }
-
-  /* ===== Event Binding ===== */
-  document.getElementById("leadForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    try {
-      addMsg("Einen Moment, ich leite dich an unsere Terminassistenz weiter …", "bot");
-      await sendLead(e.target);
-      e.target.style.display = "none";
-      chatBox.style.display = "flex";
-      chatBox.style.flexDirection = "column";
-      const first = await sendChat(""); // triggert n8n Start
-      renderResponse(first);
-    } catch (err) {
-      console.error(err);
-      addMsg("Ups. Konnte die Anmeldung nicht übermitteln. Bitte neu laden.", "bot");
-    }
+/* ====== Helpers ====== */
+const chatWindow = document.getElementById("chatWindow");
+function appendBubble(text, sender="bot") {
+  const div = document.createElement("div");
+  div.className = "bubble";
+  div.textContent = text;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+async function postJSON(url, data) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
   });
-  </script>
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/* ====== State Guards ====== */
+let SESSION_ID = "sess_" + Date.now();
+let CHAT_BOOTED = false;
+let FIRST_PING_SENT = false;
+
+/* ====== Boot Chat ====== */
+async function bootChatOnce() {
+  if (CHAT_BOOTED) return;
+  CHAT_BOOTED = true;
+
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("chatCard").style.display = "block";
+
+  if (!FIRST_PING_SENT) {
+    FIRST_PING_SENT = true;
+    try {
+      await sendChat("");
+    } catch (e) {
+      console.error("Chat start failed", e);
+      appendBubble("Ups. Konnte die Anmeldung nicht übermitteln. Bitte neu laden.");
+    }
+  }
+}
+
+/* ====== Lead Form ====== */
+document.getElementById("leadForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const formData = Object.fromEntries(new FormData(e.target).entries());
+
+  appendBubble("Einen Moment, ich leite dich an unsere Terminassistenz weiter …");
+
+  try {
+    await postJSON(N8N_LEAD_URL, {
+      session_id: SESSION_ID,
+      form_data: formData,
+      consent: true
+    });
+    await bootChatOnce();
+  } catch (err) {
+    console.error(err);
+    appendBubble("Ups. Konnte die Anmeldung nicht übermitteln. Bitte neu laden.");
+  }
+}, { once: true });
+
+/* ====== Chat Handling ====== */
+async function sendChat(message) {
+  try {
+    const resp = await postJSON(N8N_CHAT_URL, {
+      session_id: SESSION_ID,
+      message
+    });
+    if (resp.messages) {
+      resp.messages.forEach(m => appendBubble(m.text || "[...]"));
+    }
+  } catch (err) {
+    console.error("Chat error", err);
+    appendBubble("Verbindung fehlgeschlagen. Bitte später nochmal versuchen.");
+  }
+}
+
+document.getElementById("chatForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  appendBubble(text, "user");
+  sendChat(text);
+  input.value = "";
+});
+</script>
+
 </body>
 </html>
