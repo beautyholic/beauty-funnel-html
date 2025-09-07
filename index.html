@@ -1,155 +1,236 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Beautyholic – Terminassistenz</title>
-  <meta name="color-scheme" content="light only" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buchungsfunnel – Beautyholic</title>
   <style>
-    :root{
-      --ink:#0f172a; --muted:#475569; --border:#e2e8f0; --card:#ffffff;
-      --rose-50:#fff1f2; --rose-100:#ffe4e6; --rose-500:#f43f5e; --rose-600:#e11d48;
-      --pink-50:#ffe9f7; --pink-500:#ec4899; --fuchsia-600:#c026d3;
-      --bg: radial-gradient(60% 50% at 50% -10%, var(--pink-50) 0%, #fff 55%, #fff 100%);
+    :root {
+      --ink:#0f172a; 
+      --muted:#475569; 
+      --border:#e2e8f0; 
+      --card:#ffffff;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;color:var(--ink);background:var(--bg)}
-    .max {max-width: 680px; margin: 0 auto}
-    .wrap{padding:16px;padding-bottom:calc(100px + env(safe-area-inset-bottom))}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,.06)}
-    .pill{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; padding:6px 10px; font-weight:600; font-size:12px; color:#64748b}
-    .trust{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    .trust > span{display:inline-flex; justify-content:center; align-items:center; border-radius:16px; background:var(--rose-50); color:#be123c; border:1px solid var(--rose-100); padding:8px 10px; font-weight:600; font-size:13px}
-    .offer{background:var(--rose-50); border:1px solid var(--rose-100); border-radius:18px; padding:14px}
-    .chatWin{height:58vh; overflow:auto; padding:12px}
-    .bubbles{display:flex; flex-direction:column; gap:8px}
-    .bot{align-self:flex-start; max-width:86%; background:#fff; border:1px solid var(--border); border-radius:18px; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,.03)}
-    .user{align-self:flex-end; max-width:86%; background:#0f172a; color:#fff; border-radius:18px; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,.06)}
-    .options,.slots{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px}
-    .chip{border:1px dashed #cbd5e1; border-radius:999px; padding:9px 14px; font-weight:600; background:#fff}
-    .slot{border:1px dashed #cbd5e1; border-radius:14px; padding:10px 14px; background:#fff; font-weight:600}
-    .slot.active{border-style:solid}
-    .typing{display:inline-flex; gap:4px; align-items:center}
-    .dot{width:6px;height:6px;border-radius:999px;background:#94a3b8; animation: up .9s infinite}
-    .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
-    @keyframes up{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-3px)}}
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: radial-gradient(60% 50% at 50% -10%, #fff5fb 0%, #ffffff 60%, #ffffff 100%);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      max-width: 480px;
+      margin: auto;
+    }
+
+    .card {
+      width: 100%;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 8px 28px rgba(15,23,42,.06);
+      border: 1px solid var(--border);
+      padding: 18px 18px 16px;
+      margin-bottom: 16px;
+    }
+
+    #intro h1 { 
+      margin: 2px 0 8px;
+      font-size: clamp(22px, 5.5vw, 28px);
+      line-height: 1.15;
+    }
+
+    #intro .muted { 
+      color: var(--muted); 
+    }
+
+    /* Lead Form */
+    #leadForm input {
+      width: 100%;
+      height: 48px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      font-size: 16px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #leadForm input:focus {
+      border-color: #94a3b8; 
+      box-shadow: 0 0 0 3px rgba(148,163,184,.25);
+    }
+    #leadForm button[type="submit"] {
+      display: inline-grid;
+      place-items: center;
+      width: 100%;
+      height: 52px;
+      margin-top: 6px;
+      border: 0;
+      border-radius: 14px;
+      background: #0f172a;
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: .2px;
+      box-shadow: 0 6px 16px rgba(15,23,42,.20);
+      transition: transform .06s ease, filter .15s ease;
+    }
+    #leadForm button[type="submit"]:active {
+      transform: translateY(1px);
+      filter: brightness(0.96);
+    }
+
+    /* Chat */
+    #chatCard { 
+      border-radius: 20px; 
+      padding: 16px;
+    }
+
+    .chatlog {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    .msg {
+      margin: 8px 0;
+      display: flex;
+    }
+    .msg.bot { justify-content: flex-start; }
+    .msg.user { justify-content: flex-end; }
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      max-width: 75%;
+      line-height: 1.4;
+    }
+    .bot .bubble {
+      background: #f1f5f9;
+      color: var(--ink);
+    }
+    .user .bubble {
+      background: #0f172a;
+      color: #fff;
+    }
+
+    .options {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .options button {
+      padding: 8px 14px;
+      border: 1px dashed #cbd5e1;
+      background: #fff;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .options button:hover {
+      background: #f8fafc;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap max">
-    <!-- Intro -->
-    <section id="intro" class="card" style="padding:18px">
-      <h1 style="font-size:24px;margin:0 0 8px">Porentief reine Haut. Ohne Downtime.</h1>
-      <p class="muted">Buche dein <strong>Microneedling</strong> in <strong>Duisburg</strong> – schnell, freundlich und ohne Wartezeit.</p>
-      <form id="leadForm" style="margin-top:16px">
-        <input name="first_name" placeholder="Vorname" required style="width:100%;margin-bottom:8px;padding:10px">
-        <input name="last_name" placeholder="Nachname" required style="width:100%;margin-bottom:8px;padding:10px">
-        <input name="phone" placeholder="Telefon" required style="width:100%;margin-bottom:8px;padding:10px">
-        <button type="submit" style="width:100%;padding:12px;background:#111827;color:#fff;border:none;border-radius:12px">Weiter</button>
+  <div class="page">
+    <!-- Intro Card -->
+    <div id="intro" class="card">
+      <h1>Porentief reine Haut. Ohne Downtime.</h1>
+      <p class="muted">Buche dein <b>Microneedling</b> in <b>Duisburg</b> – schnell, freundlich und ohne Wartezeit.</p>
+      <form id="leadForm">
+        <input type="text" name="vorname" placeholder="Vorname" required>
+        <input type="text" name="nachname" placeholder="Nachname" required>
+        <input type="tel" name="telefon" placeholder="Telefon" required>
+        <button type="submit">Weiter</button>
       </form>
-    </section>
+    </div>
 
-    <!-- Chat -->
-    <section id="chatCard" class="card" style="margin-top:16px;display:none;padding:0">
-      <div style="padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px">
-        <div style="width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,#fca5a5,#fb7185)"></div>
-        <div><div style="font-weight:800">Banu</div><div class="muted" style="margin-top:-2px">Termin-Assistenz</div></div>
-      </div>
-      <div class="chatWin" id="chatWin" aria-live="polite">
-        <div class="bubbles" id="bubbles"></div>
-      </div>
-      <div class="inputBar" style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)">
-        <input id="chatInput" placeholder="Nachricht eingeben…" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:12px">
-        <button id="chatSend" style="width:100px;background:#111827;color:#fff;border:none;border-radius:12px">Senden</button>
-      </div>
-    </section>
+    <!-- Chat Card -->
+    <div id="chatCard" class="card" style="display:none;">
+      <div class="chatlog" id="chatlog"></div>
+    </div>
   </div>
 
-<script>
-/* ===== CONFIG ===== */
-const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-submit";
-const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-message";
-const SESSION_ID = crypto.randomUUID();
-let LEAD_ID = null;
-let EXCLUDE_IDS = new Set();   // NEU: lokale Persistenz
+  <script>
+    const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-url";
+    const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-url";
 
-/* ===== HELPERS ===== */
-const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
-const bubbles = document.getElementById('bubbles');
-function renderUser(text){ const d=document.createElement('div');d.className='user';d.textContent=text;bubbles.appendChild(d);scroll(); }
-function renderBot(text){ const d=document.createElement('div');d.className='bot';d.textContent=text;bubbles.appendChild(d);scroll(); }
-function renderTyping(){ const d=document.createElement('div');d.className='bot';d.innerHTML='<span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';bubbles.appendChild(d);scroll();return d;}
-function removeNode(n){n?.remove();}
-function scroll(){document.getElementById('chatWin').scrollTop=bubbles.scrollHeight;}
-async function postPlain(url,obj){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(obj)});return r.json();}
+    const leadForm = document.getElementById("leadForm");
+    const introCard = document.getElementById("intro");
+    const chatCard = document.getElementById("chatCard");
+    const chatlog = document.getElementById("chatlog");
 
-/* ===== FORM SUBMIT ===== */
-document.getElementById('leadForm').addEventListener('submit',async e=>{
-  e.preventDefault();
-  const data=Object.fromEntries(new FormData(e.target).entries());
-  await postPlain(N8N_LEAD_URL,{session_id:SESSION_ID,form_data:data,consent:true});
-  document.getElementById('intro').style.display='none';
-  document.getElementById('chatCard').style.display='block';
-  sendChat(""); // Chat starten
-});
-
-/* ===== SEND CHAT ===== */
-async function sendChat(message,labelShown){
-  const t=renderTyping();
-  try{
-    const payload={session_id:SESSION_ID,lead_id:LEAD_ID,message,excludeIds:Array.from(EXCLUDE_IDS)}; // NEU
-    const resp=await postPlain(N8N_CHAT_URL,payload);
-    removeNode(t); renderResponse(resp);
-  }catch{ removeNode(t); renderBot("Verbindungsproblem – bitte kurz warten."); }
-}
-
-/* ===== RENDER RESPONSE ===== */
-function renderResponse(resp){
-  (resp.messages||[]).forEach(async m=>{
-    if(m.type==="text") renderBot(m.text);
-    else if(m.type==="options"){
-      const box=document.createElement('div');box.className='bot';
-      const wrap=document.createElement('div');wrap.className='options';
-      (m.options||[]).forEach(o=>{
-        const b=document.createElement('button');b.className='chip';b.textContent=o.label;b.dataset.id=o.id;
-        b.onclick=async()=>{
-          renderUser(o.label);
-          wrap.querySelectorAll('button').forEach(x=>x.disabled=true);
-          const r=await postPlain(N8N_CHAT_URL,{session_id:SESSION_ID,lead_id:LEAD_ID,message:o.id,excludeIds:Array.from(EXCLUDE_IDS)}); // NEU
-          renderResponse(r);
-        };
-        wrap.appendChild(b);
-      });
-      box.appendChild(wrap);bubbles.appendChild(box);scroll();
+    function addMsg(text, sender="bot") {
+      const div = document.createElement("div");
+      div.className = "msg " + sender;
+      div.innerHTML = `<div class="bubble">${text}</div>`;
+      chatlog.appendChild(div);
+      chatlog.scrollTop = chatlog.scrollHeight;
     }
-    else if(m.type==="slots"){
-      const box=document.createElement('div');box.className='bot';
-      const wrap=document.createElement('div');wrap.className='slots';
-      (m.slots||[]).forEach(s=>{
-        const b=document.createElement('button');b.className='slot';b.textContent=s.label;b.dataset.id=s.id;
-        b.onclick=async()=>{
-          renderUser(s.label);
-          wrap.querySelectorAll('button').forEach(x=>x.disabled=true);
-          b.classList.add('active');
-          EXCLUDE_IDS.add(s.id); // NEU: Slot merken
-          const r=await postPlain(N8N_CHAT_URL,{session_id:SESSION_ID,lead_id:LEAD_ID,message:s.id,excludeIds:Array.from(EXCLUDE_IDS)}); // NEU
-          renderResponse(r);
-        };
-        wrap.appendChild(b);
-      });
-      box.appendChild(wrap);bubbles.appendChild(box);scroll();
-    }
-    if(Array.isArray(resp.lastOffered)){resp.lastOffered.forEach(id=>EXCLUDE_IDS.add(id));} // NEU
-  });
-}
 
-/* ===== INPUT BAR ===== */
-document.getElementById('chatSend').onclick=()=>{
-  const val=document.getElementById('chatInput').value.trim();
-  if(!val) return;
-  renderUser(val); document.getElementById('chatInput').value='';
-  sendChat(val);
-};
-</script>
+    function addOptions(options) {
+      const div = document.createElement("div");
+      div.className = "options";
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt.label;
+        btn.onclick = () => {
+          addMsg(opt.label, "user");
+          div.remove();
+          sendChat(opt.id);
+        };
+        div.appendChild(btn);
+      });
+      chatlog.appendChild(div);
+      chatlog.scrollTop = chatlog.scrollHeight;
+    }
+
+    async function sendLead(data) {
+      const res = await fetch(N8N_LEAD_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      handleResponse(json);
+    }
+
+    async function sendChat(message) {
+      const res = await fetch(N8N_CHAT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+      const json = await res.json();
+      handleResponse(json);
+    }
+
+    function handleResponse(resp) {
+      if (!resp || !resp.messages) return;
+      resp.messages.forEach(m => {
+        if (m.type === "text") addMsg(m.text);
+        if (m.type === "options") addOptions(m.options);
+        if (m.type === "slots") addOptions(m.slots);
+      });
+    }
+
+    // Lead Submit
+    leadForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(leadForm).entries());
+      introCard.style.display = "none";
+      chatCard.style.display = "block";
+      addMsg("Einen Moment, ich leite dich an unsere Terminassistenz weiter …");
+      sendLead(formData);
+    });
+  </script>
 </body>
 </html>
