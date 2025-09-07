@@ -1,393 +1,155 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="color-scheme" content="light only">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Beautyholic – Terminassistenz</title>
+  <meta name="color-scheme" content="light only" />
   <style>
     :root{
       --ink:#0f172a; --muted:#475569; --border:#e2e8f0; --card:#ffffff;
-      --rose-50:#fff1f2; --rose-100:#ffe4e6; --pink-50:#ffe9f7;
-      --pink-500:#ec4899; --fuchsia-600:#c026d3; --brand:#0f172a;
-      --ok:#16a34a; --danger:#ef4444;
+      --rose-50:#fff1f2; --rose-100:#ffe4e6; --rose-500:#f43f5e; --rose-600:#e11d48;
+      --pink-50:#ffe9f7; --pink-500:#ec4899; --fuchsia-600:#c026d3;
       --bg: radial-gradient(60% 50% at 50% -10%, var(--pink-50) 0%, #fff 55%, #fff 100%);
     }
-    *{box-sizing:border-box} html,body{height:100%}
+    *{box-sizing:border-box}
     body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;color:var(--ink);background:var(--bg)}
-    .max{max-width:680px;margin:0 auto}
+    .max {max-width: 680px; margin: 0 auto}
     .wrap{padding:16px;padding-bottom:calc(100px + env(safe-area-inset-bottom))}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:24px;box-shadow:0 10px 30px rgba(0,0,0,.06)}
-    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-weight:600;font-size:12px;color:#64748b}
-    .trust{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .trust>span{display:inline-flex;justify-content:center;align-items:center;border-radius:16px;background:var(--rose-50);color:#be123c;border:1px solid var(--rose-100);padding:8px 10px;font-weight:600;font-size:13px}
-    .offer{background:var(--rose-50);border:1px solid var(--rose-100);border-radius:18px;padding:14px}
-
-    /* Bottom CTA bar */
-    .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.9);backdrop-filter:saturate(140%) blur(8px);border-top:1px solid var(--border)}
-    .bar .inner{padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px}
-    .btn{height:48px;border-radius:12px;font-weight:700;display:grid;place-items:center;border:1px solid var(--border);color:#334155;background:#fff;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--pink-500),var(--fuchsia-600));color:#fff;border:none;box-shadow:0 8px 20px rgba(236,72,153,.35)}
-    .btn:active{transform:scale(.99)}
-
-    /* Sheet / modal */
-    .sheet{position:fixed;inset:0;display:none;z-index:40;background:rgba(0,0,0,.35)}
-    .sheet.open{display:block}
-    .sheet .panel{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;border:1px solid var(--border);padding:16px;max-height:80vh;overflow:auto}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field input{height:48px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px}
-    .row{display:flex;gap:10px}
-    .muted{color:var(--muted);font-size:13px}
-
-    /* Chat */
-    #chatCard{display:none;margin-top:16px}
-    .chatHead{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-    .chatWin{height:60vh;overflow:auto;padding:12px}
-    .bubbles{display:flex;flex-direction:column;gap:8px}
-    .bot{align-self:flex-start;max-width:86%;background:#fff;border:1px solid var(--border);border-radius:18px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
-    .user{align-self:flex-end;max-width:86%;background:#0f172a;color:#fff;border-radius:18px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-    .latest{box-shadow:0 0 0 0 rgba(236,72,153,.0),0 0 0 4px rgba(236,72,153,.08)}
-    .options,.slots{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
-    .chip{border:1px dashed #cbd5e1;border-radius:999px;padding:9px 14px;font-weight:600;background:#fff;cursor:pointer}
-    .chip[disabled]{opacity:.45;pointer-events:none}
-    .slot{border:1px dashed #cbd5e1;border-radius:14px;padding:10px 14px;background:#fff;font-weight:600;cursor:pointer}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,.06)}
+    .pill{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:999px; padding:6px 10px; font-weight:600; font-size:12px; color:#64748b}
+    .trust{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .trust > span{display:inline-flex; justify-content:center; align-items:center; border-radius:16px; background:var(--rose-50); color:#be123c; border:1px solid var(--rose-100); padding:8px 10px; font-weight:600; font-size:13px}
+    .offer{background:var(--rose-50); border:1px solid var(--rose-100); border-radius:18px; padding:14px}
+    .chatWin{height:58vh; overflow:auto; padding:12px}
+    .bubbles{display:flex; flex-direction:column; gap:8px}
+    .bot{align-self:flex-start; max-width:86%; background:#fff; border:1px solid var(--border); border-radius:18px; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,.03)}
+    .user{align-self:flex-end; max-width:86%; background:#0f172a; color:#fff; border-radius:18px; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .options,.slots{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px}
+    .chip{border:1px dashed #cbd5e1; border-radius:999px; padding:9px 14px; font-weight:600; background:#fff}
+    .slot{border:1px dashed #cbd5e1; border-radius:14px; padding:10px 14px; background:#fff; font-weight:600}
     .slot.active{border-style:solid}
-    .typing{display:inline-flex;gap:4px;align-items:center}
-    .dot{width:6px;height:6px;border-radius:999px;background:#94a3b8;animation:up .9s infinite}
+    .typing{display:inline-flex; gap:4px; align-items:center}
+    .dot{width:6px;height:6px;border-radius:999px;background:#94a3b8; animation: up .9s infinite}
     .dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
     @keyframes up{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-3px)}}
-    .stickyRecap{position:sticky;top:0;z-index:5;display:flex;gap:6px;background:linear-gradient(#fff,rgba(255,255,255,.85));padding:6px 8px;border-bottom:1px solid var(--border)}
-    .pillSmall{border:1px solid var(--border);border-radius:999px;padding:3px 8px;font-size:12px;color:#475569;background:#fff}
-    .inputBar{display:flex;gap:8px;border-top:1px solid var(--border);padding:10px;background:#fff}
-    .inputBar input{flex:1;height:44px;border:1px solid var(--border);border-radius:12px;padding:10px 12px}
-    .inputBar button{width:100px;height:44px;border-radius:12px;border:none;background:#0f172a;color:#fff;font-weight:700;cursor:pointer}
-
-    /* Loader overlay */
-    .overlay{position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px;z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
-    .overlay.on{opacity:1;pointer-events:auto}
-    .spinner{width:56px;height:56px;border:6px solid #f3f3f3;border-top:6px solid var(--brand);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
-    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
-  <main id="intro" class="wrap max">
-    <section class="card" style="padding:18px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;color:#64748b;font-size:12px;margin-bottom:8px">
-        <span class="pill"><span style="width:6px;height:6px;background:#10b981;border-radius:999px"></span>Zertifiziertes Studio</span>
-        <span class="pill"><span style="width:6px;height:6px;background:#ec4899;border-radius:999px"></span>Hygiene geprüft</span>
-        <span class="pill"><span style="width:6px;height:6px;background:#8b5cf6;border-radius:999px"></span>Female Expert Team</span>
-      </div>
-
-      <h1 style="font-size:28px;line-height:1.15;margin:0">Porentief reine Haut. Ohne Downtime.</h1>
-      <p class="muted" style="margin-top:10px">
-        Buche dein <strong>Microneedling</strong> – schnell, freundlich und ohne Wartezeit. Ideal bei vergrößerten Poren, feinen Aknenarben und Pigmentflecken.
-      </p>
-
-      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;font-size:14px">
-        <div aria-label="4.9 von 5 Sternen" style="color:#ec4899">★★★★★</div>
-        <strong style="color:#0f172a">Kundinnenstimmen</strong>
-        <span class="muted">· Vorher–Nachher</span>
-      </div>
-
-      <div class="trust" style="margin-top:12px">
-        <span>In Duisburg</span><span>Hygiene geprüft</span><span style="grid-column:1/span 2">Female Expert Team</span>
-      </div>
-
-      <div class="offer" style="margin-top:14px">
-        <div class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">Neukunden-Angebot</div>
-        <div style="font-size:22px;font-weight:800;margin-top:6px">Microneedling für nur 99€</div>
-        <div class="muted" style="margin-top:6px">75 Min · Beratung im Wert von 35€ inklusive</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <span class="pill" style="background:#fff">Keine Ausfallzeit</span>
-          <span class="pill" style="background:#fff">Nur 10 Plätze verfügbar</span>
-        </div>
-      </div>
+  <div class="wrap max">
+    <!-- Intro -->
+    <section id="intro" class="card" style="padding:18px">
+      <h1 style="font-size:24px;margin:0 0 8px">Porentief reine Haut. Ohne Downtime.</h1>
+      <p class="muted">Buche dein <strong>Microneedling</strong> in <strong>Duisburg</strong> – schnell, freundlich und ohne Wartezeit.</p>
+      <form id="leadForm" style="margin-top:16px">
+        <input name="first_name" placeholder="Vorname" required style="width:100%;margin-bottom:8px;padding:10px">
+        <input name="last_name" placeholder="Nachname" required style="width:100%;margin-bottom:8px;padding:10px">
+        <input name="phone" placeholder="Telefon" required style="width:100%;margin-bottom:8px;padding:10px">
+        <button type="submit" style="width:100%;padding:12px;background:#111827;color:#fff;border:none;border-radius:12px">Weiter</button>
+      </form>
     </section>
 
-    <!-- Chatkarte (initial versteckt, erscheint nach Formular) -->
-    <section id="chatCard" class="card" style="padding:0;margin-top:16px">
-      <div class="chatHead">
+    <!-- Chat -->
+    <section id="chatCard" class="card" style="margin-top:16px;display:none;padding:0">
+      <div style="padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px">
         <div style="width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,#fca5a5,#fb7185)"></div>
-        <div>
-          <div style="font-weight:800">Banu</div>
-          <div class="muted" style="margin-top:-2px">Termin-Assistenz</div>
-        </div>
-        <div style="margin-left:auto" class="muted">Antwortet i. d. R. <b>unter 1 Min.</b></div>
+        <div><div style="font-weight:800">Banu</div><div class="muted" style="margin-top:-2px">Termin-Assistenz</div></div>
       </div>
-
       <div class="chatWin" id="chatWin" aria-live="polite">
-        <div class="stickyRecap" id="recap" style="display:none">
-          <span class="pillSmall" id="recapDay" style="display:none"></span>
-          <span class="pillSmall" id="recapTime" style="display:none"></span>
-        </div>
         <div class="bubbles" id="bubbles"></div>
       </div>
-
-      <div class="inputBar">
-        <input id="chatInput" placeholder="Nachricht eingeben…">
-        <button id="chatSend">Senden</button>
+      <div class="inputBar" style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--border)">
+        <input id="chatInput" placeholder="Nachricht eingeben…" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:12px">
+        <button id="chatSend" style="width:100px;background:#111827;color:#fff;border:none;border-radius:12px">Senden</button>
       </div>
     </section>
-  </main>
-
-  <!-- Bottom CTA -->
-  <div class="bar">
-    <div class="inner max">
-      <button class="btn" id="openMore">Mehr Infos</button>
-      <button class="btn primary" id="openForm" data-test="cta-booking">Termin buchen</button>
-    </div>
   </div>
 
-  <!-- Mehr Infos -->
-  <div id="moreModal" class="sheet" role="dialog" aria-modal="true" aria-labelledby="moreTitle">
-    <div class="panel max">
-      <div style="width:44px;height:4px;background:#e2e8f0;border-radius:999px;margin:6px auto 10px"></div>
-      <h2 id="moreTitle" style="margin:0 0 8px 0;font-size:20px;font-weight:800">Microneedling – auf einen Blick</h2>
-      <ul class="muted" style="padding-left:16px;margin:0">
-        <li style="margin:6px 0">Verfeinert Poren und glättet die Hautstruktur</li>
-        <li style="margin:6px 0">Mildert feine Aknenarben & Pigmentunregelmäßigkeiten</li>
-        <li style="margin:6px 0">Regt die Kollagenbildung an</li>
-        <li style="margin:6px 0">Kaum Ausfallzeit – direkt wieder einsatzfähig</li>
-        <li style="margin:6px 0">Inklusive Hautanalyse & Pflegeplan</li>
-      </ul>
-      <div class="row" style="margin-top:12px">
-        <button class="btn" id="closeMore">Schließen</button>
-        <button class="btn primary" id="openForm2">Termin wählen</button>
-      </div>
-    </div>
-  </div>
+<script>
+/* ===== CONFIG ===== */
+const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-submit";
+const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-message";
+const SESSION_ID = crypto.randomUUID();
+let LEAD_ID = null;
+let EXCLUDE_IDS = new Set();   // NEU: lokale Persistenz
 
-  <!-- Formular-Sheet -->
-  <div id="formSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="formTitle">
-    <div class="panel max">
-      <div style="width:44px;height:4px;background:#e2e8f0;border-radius:999px;margin:6px auto 10px"></div>
-      <h2 id="formTitle" style="margin:0 0 8px 0;font-size:20px;font-weight:800">Kurz eintragen</h2>
-      <p class="muted" style="margin:0 0 12px 0">Wir nutzen deine Daten nur zur Terminvergabe.</p>
-      <form id="leadForm" novalidate>
-        <div class="row">
-          <div class="field" style="flex:1"><label>Vorname</label><input required name="first_name" autocomplete="given-name"></div>
-          <div class="field" style="flex:1"><label>Nachname</label><input required name="last_name" autocomplete="family-name"></div>
-        </div>
-        <div class="field" style="margin-top:10px"><label>Telefon</label><input required name="phone" inputmode="tel" autocomplete="tel"></div>
-        <div class="field" style="margin-top:10px"><label>E-Mail (optional)</label><input name="email" type="email" autocomplete="email"></div>
-        <div class="row" style="margin-top:14px">
-          <button type="button" class="btn" id="closeForm">Abbrechen</button>
-          <button class="btn primary" type="submit">Weiter</button>
-        </div>
-      </form>
-    </div>
-  </div>
+/* ===== HELPERS ===== */
+const sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+const bubbles = document.getElementById('bubbles');
+function renderUser(text){ const d=document.createElement('div');d.className='user';d.textContent=text;bubbles.appendChild(d);scroll(); }
+function renderBot(text){ const d=document.createElement('div');d.className='bot';d.textContent=text;bubbles.appendChild(d);scroll(); }
+function renderTyping(){ const d=document.createElement('div');d.className='bot';d.innerHTML='<span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';bubbles.appendChild(d);scroll();return d;}
+function removeNode(n){n?.remove();}
+function scroll(){document.getElementById('chatWin').scrollTop=bubbles.scrollHeight;}
+async function postPlain(url,obj){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(obj)});return r.json();}
 
-  <!-- Overlay -->
-  <div id="overlay" class="overlay" aria-live="polite" aria-busy="true">
-    <div>
-      <div class="spinner"></div>
-      <div style="font-weight:700;margin-bottom:4px">Einen Moment …</div>
-      <div class="muted">Ich leite dich gleich an unsere Terminassistenz weiter.</div>
-    </div>
-  </div>
+/* ===== FORM SUBMIT ===== */
+document.getElementById('leadForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const data=Object.fromEntries(new FormData(e.target).entries());
+  await postPlain(N8N_LEAD_URL,{session_id:SESSION_ID,form_data:data,consent:true});
+  document.getElementById('intro').style.display='none';
+  document.getElementById('chatCard').style.display='block';
+  sendChat(""); // Chat starten
+});
 
-  <script>
-    /* ====== CONFIG (n8n) ====== */
-    const N8N_LEAD_URL = "https://beautyholic.app.n8n.cloud/webhook/lead-url";
-    const N8N_CHAT_URL = "https://beautyholic.app.n8n.cloud/webhook/chat-url";
+/* ===== SEND CHAT ===== */
+async function sendChat(message,labelShown){
+  const t=renderTyping();
+  try{
+    const payload={session_id:SESSION_ID,lead_id:LEAD_ID,message,excludeIds:Array.from(EXCLUDE_IDS)}; // NEU
+    const resp=await postPlain(N8N_CHAT_URL,payload);
+    removeNode(t); renderResponse(resp);
+  }catch{ removeNode(t); renderBot("Verbindungsproblem – bitte kurz warten."); }
+}
 
-    /* ====== Small helpers ====== */
-    const $  = s => document.querySelector(s);
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-    function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-    // Session + UTM
-    const SESSION_ID = (crypto?.randomUUID?.() || Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
-    let LEAD_ID = null;
-    const urlParams = new URLSearchParams(location.search);
-    const UTM = Object.fromEntries(["utm_source","utm_medium","utm_campaign","utm_term","utm_content"].map(k=>[k,urlParams.get(k)||""]));
-
-    // UI refs
-    const overlay = $("#overlay");
-    const chatCard = $("#chatCard");
-    const chatWin  = $("#chatWin");
-    const bubbles  = $("#bubbles");
-    const recap    = $("#recap");
-    const recapDay = $("#recapDay");
-    const recapTime= $("#recapTime");
-
-    // CTA / Sheets
-    const more = $("#moreModal");
-    $("#openMore").onclick = ()=> more.classList.add("open");
-    $("#closeMore").onclick = ()=> more.classList.remove("open");
-    $("#openForm2").onclick = ()=> { more.classList.remove("open"); openForm(); };
-
-    const formSheet = $("#formSheet");
-    const openForm  = ()=> formSheet.classList.add("open");
-    const closeForm = ()=> formSheet.classList.remove("open");
-    $("#openForm").onclick = openForm;
-    $("#closeForm").onclick = closeForm;
-
-    // API call (text/plain to be friendlier with n8n Webhook)
-    async function postPlain(url, obj){
-      const res = await fetch(url, {
-        method:"POST",
-        headers:{ "Content-Type":"text/plain" },
-        body: JSON.stringify(obj)
-      });
-      if(!res.ok) throw new Error("HTTP "+res.status);
-      try { return await res.json(); } catch { return {}; }
-    }
-
-    function autoscroll(){ chatWin.scrollTop = chatWin.scrollHeight; }
-    function removeLatestGlow(){ bubbles.querySelectorAll(".latest").forEach(n=>n.classList.remove("latest")); }
-
-    function renderTyping(){
-      const n = document.createElement("div");
-      n.className = "bot";
-      n.innerHTML = '<span class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
-      bubbles.appendChild(n); autoscroll(); return n;
-    }
-
-    function renderBot(text){
-      removeLatestGlow();
-      const n = document.createElement("div");
-      n.className = "bot latest";
-      n.textContent = text;
-      bubbles.appendChild(n); autoscroll();
-    }
-
-    function renderUser(text){
-      removeLatestGlow();
-      const n = document.createElement("div");
-      n.className = "user latest";
-      n.textContent = text;
-      bubbles.appendChild(n); autoscroll();
-    }
-
-    function renderOptions(options){
-      removeLatestGlow();
-      const box = document.createElement("div"); box.className = "bot latest";
-      box.innerHTML = '<div style="font-weight:800;margin-bottom:6px">Wähle aus:</div><div class="options"></div>';
-      const wrap = box.querySelector(".options");
-      (options||[]).forEach(o=>{
-        const b = document.createElement("button");
-        b.className = "chip"; b.textContent = o.label; b.dataset.id = o.id;
-        b.onclick = async ()=>{
-          // Echo + disable
+/* ===== RENDER RESPONSE ===== */
+function renderResponse(resp){
+  (resp.messages||[]).forEach(async m=>{
+    if(m.type==="text") renderBot(m.text);
+    else if(m.type==="options"){
+      const box=document.createElement('div');box.className='bot';
+      const wrap=document.createElement('div');wrap.className='options';
+      (m.options||[]).forEach(o=>{
+        const b=document.createElement('button');b.className='chip';b.textContent=o.label;b.dataset.id=o.id;
+        b.onclick=async()=>{
           renderUser(o.label);
-          wrap.querySelectorAll("button").forEach(x=>x.disabled=true);
-
-          // Recap pills (heuristic based on id prefix)
-          if (o.id.startsWith("day_")){
-            recap.style.display="flex"; recapDay.style.display="inline-block"; recapDay.textContent = o.label;
-          }
-          if (o.id.startsWith("pref_")){
-            recap.style.display="flex"; recapTime.style.display="inline-block"; recapTime.textContent = o.label;
-          }
-
-          const t = renderTyping(); await sleep(600);
-          try{
-            const resp = await postPlain(N8N_CHAT_URL, { session_id:SESSION_ID, lead_id:LEAD_ID, message:o.id });
-            t.remove(); renderResponse(resp);
-          }catch{ t.remove(); renderBot("Netzwerk kurz langsam – bitte nochmal tippen."); }
+          wrap.querySelectorAll('button').forEach(x=>x.disabled=true);
+          const r=await postPlain(N8N_CHAT_URL,{session_id:SESSION_ID,lead_id:LEAD_ID,message:o.id,excludeIds:Array.from(EXCLUDE_IDS)}); // NEU
+          renderResponse(r);
         };
         wrap.appendChild(b);
       });
-      bubbles.appendChild(box); autoscroll();
+      box.appendChild(wrap);bubbles.appendChild(box);scroll();
     }
-
-    function renderSlots(slots){
-      removeLatestGlow();
-      const box = document.createElement("div"); box.className = "bot latest";
-      box.innerHTML = '<div style="font-weight:800;margin-bottom:6px">Hier sind freie Zeiten:</div><div class="slots"></div>';
-      const wrap = box.querySelector(".slots");
-      (slots||[]).forEach(s=>{
-        const b = document.createElement("button");
-        b.className = "slot"; b.textContent = s.label; b.dataset.id = s.id;
-        b.onclick = async ()=>{
+    else if(m.type==="slots"){
+      const box=document.createElement('div');box.className='bot';
+      const wrap=document.createElement('div');wrap.className='slots';
+      (m.slots||[]).forEach(s=>{
+        const b=document.createElement('button');b.className='slot';b.textContent=s.label;b.dataset.id=s.id;
+        b.onclick=async()=>{
           renderUser(s.label);
-          wrap.querySelectorAll("button").forEach(x=>x.disabled=true);
-          b.classList.add("active");
-          const t = renderTyping(); await sleep(700);
-          try{
-            const resp = await postPlain(N8N_CHAT_URL, { session_id:SESSION_ID, lead_id:LEAD_ID, message:s.id });
-            t.remove(); renderResponse(resp);
-          }catch{ t.remove(); renderBot("Konnte den Slot nicht sichern – bitte erneut versuchen."); }
+          wrap.querySelectorAll('button').forEach(x=>x.disabled=true);
+          b.classList.add('active');
+          EXCLUDE_IDS.add(s.id); // NEU: Slot merken
+          const r=await postPlain(N8N_CHAT_URL,{session_id:SESSION_ID,lead_id:LEAD_ID,message:s.id,excludeIds:Array.from(EXCLUDE_IDS)}); // NEU
+          renderResponse(r);
         };
         wrap.appendChild(b);
       });
-      bubbles.appendChild(box); autoscroll();
+      box.appendChild(wrap);bubbles.appendChild(box);scroll();
     }
+    if(Array.isArray(resp.lastOffered)){resp.lastOffered.forEach(id=>EXCLUDE_IDS.add(id));} // NEU
+  });
+}
 
-    function renderResponse(resp){
-      const msgs = Array.isArray(resp?.messages) ? resp.messages : [];
-      (async ()=>{
-        for(const m of msgs){
-          const t = renderTyping();
-          const delay = Math.min(1400, 650 + ((m.text||'').length * 18));
-          await sleep(delay);
-          t.remove();
-
-          if (m.type === "text")        renderBot(m.text);
-          else if (m.type === "options") renderOptions(m.options);
-          else if (m.type === "slots")   renderSlots(m.slots);
-        }
-        if (resp?.debug){
-          const d = document.createElement("div"); d.className="bot muted";
-          d.textContent = "debug: " + String(resp.debug); bubbles.appendChild(d); autoscroll();
-        }
-      })();
-    }
-
-    /* ===== Lead submit → Chat einblenden & Konversation starten ===== */
-    document.getElementById('leadForm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(e.target).entries());
-
-      overlay.classList.add('on');
-      const overlayGuard = setTimeout(()=> overlay.classList.remove('on'), 8000);
-
-      try {
-        // Lead an n8n senden
-        const r = await postPlain(N8N_LEAD_URL, {
-          session_id: SESSION_ID,
-          form_data: data,
-          consent: true,
-          ...UTM
-        });
-        LEAD_ID = r?.lead_id || null;
-
-        // Chat sichtbar machen (nicht #intro verstecken, da #chatCard darin liegt)
-        chatCard.style.display = 'block';
-        chatCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        // Erste Bot-Nachricht (leer → Router/ASK)
-        const t = renderTyping();
-        await sleep(700);
-        const resp = await postPlain(N8N_CHAT_URL, { session_id: SESSION_ID, lead_id: LEAD_ID, message: "" });
-        t.remove();
-        renderResponse(resp);
-
-      } catch(err){
-        alert("Ups – etwas ist schief gelaufen. Bitte später erneut probieren.");
-      } finally {
-        clearTimeout(overlayGuard);
-        overlay.classList.remove('on');
-      }
-    });
-
-    // Manuelle Texteingabe
-    document.getElementById("chatSend").addEventListener("click", async ()=>{
-      const inp = document.getElementById("chatInput");
-      const msg = inp.value.trim(); if(!msg) return;
-      renderUser(msg); inp.value="";
-      const t = renderTyping(); await sleep(500);
-      try{ const r = await postPlain(N8N_CHAT_URL, { session_id:SESSION_ID, lead_id:LEAD_ID, message: msg }); t.remove(); renderResponse(r); }
-      catch{ t.remove(); renderBot("Verbindungsproblem – bitte kurz neu laden oder später erneut versuchen."); }
-    });
-    document.getElementById("chatInput").addEventListener("keydown", ev=>{
-      if(ev.key==="Enter"){ ev.preventDefault(); document.getElementById("chatSend").click(); }
-    });
-
-    // Buttons „Mehr Infos“ / „Termin buchen“
-    window.openForm = ()=> formSheet.classList.add("open");
-  </script>
+/* ===== INPUT BAR ===== */
+document.getElementById('chatSend').onclick=()=>{
+  const val=document.getElementById('chatInput').value.trim();
+  if(!val) return;
+  renderUser(val); document.getElementById('chatInput').value='';
+  sendChat(val);
+};
+</script>
 </body>
 </html>
