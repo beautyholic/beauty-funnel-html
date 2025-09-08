@@ -6,23 +6,38 @@
   <title>BH · Chat-Test</title>
   <style>
     :root { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#fafafa; --card:#fff; --btn:#0f172a;}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    .wrap{max-width:720px;margin:0 auto;padding:16px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .wrap{max-width:760px;margin:0 auto;padding:16px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
     h1{font-size:20px;margin:0 0 8px}
     .row{display:flex;gap:8px}
     .field{flex:1;display:flex;flex-direction:column;gap:6px}
     input{height:44px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
-    button{height:44px;border-radius:10px;border:0;background:var(--btn);color:#fff;font-weight:700;cursor:pointer}
+
+    /* WICHTIG: globaler Button-Stil nur für „normale“ Buttons */
+    button:not(.chip):not(.slot){
+      height:44px;border-radius:10px;border:0;background:var(--btn);color:#fff;font-weight:700;cursor:pointer
+    }
     button[disabled]{opacity:.5;cursor:not-allowed}
+
     .log{margin-top:12px;font:12px/1.4 ui-monospace,monospace;color:#475569;white-space:pre-wrap}
+
     /* chat */
     .chat{margin-top:12px}
     .bubble{padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin:8px 0;max-width:100%}
     .bot{background:#fff}
     .me{background:#0f172a;color:#fff;margin-left:auto}
     .group{display:flex;flex-wrap:wrap;gap:8px}
-    .chip,.slot{border:1px solid var(--line);background:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:600}
+    .chip,.slot{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);           /* <- sichtbarer Text */
+      padding:8px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:600
+    }
     .chip[disabled],.slot[disabled]{opacity:.5;cursor:not-allowed}
     .muted{color:var(--muted)}
   </style>
@@ -45,7 +60,7 @@
         <div id="messages"></div>
         <div class="row" style="margin-top:8px">
           <input id="textInput" placeholder="Nachricht eingeben…">
-          <button id="sendBtn">Senden</button>
+          <button id="sendBtn" type="button">Senden</button>
         </div>
       </div>
 
@@ -60,7 +75,7 @@
 
     /* ========= Helpers ========= */
     const $ = sel => document.querySelector(sel);
-    const log = (...a)=>{ console.log("[test]",...a); const el=$("#log"); el.textContent += a.map(x=>typeof x==="string"?x:JSON.stringify(x)).join(" ")+"\n"; }
+    const log = (...a)=>{ console.log("[test]",...a); $("#log").textContent += a.map(x=>typeof x==="string"?x:JSON.stringify(x)).join(" ")+"\n"; }
     async function postJSON(url, obj){
       const res = await fetch(url, {
         method: "POST",
@@ -85,6 +100,18 @@
     let LEAD_ID = null;
     let PENDING = false; // Doppel-Send-Guard
 
+    // De-Dupe: letzte „Signatur“ der serverseitigen Nachricht
+    let lastSignature = "";
+    let lastState = "";
+
+    function signatureOf(resp){
+      try{
+        // nur die „messages“-Payload & state hash-en
+        const core = JSON.stringify({ messages: resp?.messages, state: resp?.state ?? resp?.debug ?? "" });
+        return core;
+      }catch{ return String(Math.random()); }
+    }
+
     async function sendChat(message){
       if(PENDING) return;
       PENDING = true;
@@ -102,6 +129,21 @@
     }
 
     function renderResponse(resp){
+      // Dedupe gleiche Antwort
+      const sig = signatureOf(resp);
+      if (sig === lastSignature) {
+        log("skip duplicate render");
+        return;
+      }
+      lastSignature = sig;
+
+      // optional: einfachen state-Loop vermeiden
+      if (resp?.state && resp.state === lastState) {
+        log("skip same state:", resp.state);
+        // wir rendern trotzdem, falls sich der Inhalt geändert hat → das deckt sig bereits ab
+      }
+      if (resp?.state) lastState = resp.state;
+
       const arr = Array.isArray(resp?.messages) ? resp.messages : [];
       arr.forEach(m=>{
         if(m.type === "text"){
@@ -110,6 +152,7 @@
           const g = document.createElement("div"); g.className="group";
           (m.options||[]).forEach(o=>{
             const b = document.createElement("button");
+            b.type = "button";
             b.className="chip"; b.textContent=o.label;
             b.onclick = ()=>{
               g.querySelectorAll("button").forEach(x=>x.disabled=true);
@@ -123,6 +166,7 @@
           const g = document.createElement("div"); g.className="group";
           (m.slots||[]).forEach(s=>{
             const b = document.createElement("button");
+            b.type = "button";
             b.className="slot"; b.textContent=s.label;
             b.onclick = ()=>{
               g.querySelectorAll("button").forEach(x=>x.disabled=true);
@@ -170,10 +214,6 @@
       $("#textInput").value="";
       sendChat(v);
     };
-
-    // Optional: UTM einlesen (taucht im leadPayload automatisch nicht auf, hier nur Beispiel)
-    // const UTM = Object.fromEntries(["utm_source","utm_medium","utm_campaign"].map(k=>[k,new URLSearchParams(location.search).get(k)||""]));
-
   </script>
 </body>
 </html>
